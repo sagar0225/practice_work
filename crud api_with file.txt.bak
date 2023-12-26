@@ -1,0 +1,100 @@
+*file with insert data in one function
+
+
+
+
+
+
+
+
+// Validate the request data
+        $request->validate([
+            'name' => 'required|string',
+            'file' => 'required|mimes:jpeg,png,jpg,pdf|max:2048',
+            'email' => 'required|email|unique:users',
+            'password' => 'required|min:6',
+        ]);
+
+        // Handle the file upload
+        $file = $request->file('file');
+        $fileName = time() . '_' . $file->getClientOriginalName();
+        $file->storeAs('uploads', $fileName, 'public');
+
+        // Create a new user record
+        $user = new User();
+        $user->name = $request->input('name');
+        $user->file_path = $fileName; // Adjust the column name according to your database schema
+        $user->email = $request->input('email');
+        $user->password = bcrypt($request->input('password')); // Hash the password
+
+        // Save the user record
+        $user->save();
+
+        // Return a response
+        return response()->json(['message' => 'User created successfully']);
+    }
+
+
+
+
+
+
+
+
+    ------------------------
+    
+
+// Validate the request data
+$request->validate([
+    'name' => 'required',
+    'email' => 'required',
+    'password' => 'required',
+    'file' => 'required|mimes:jpeg,png,jpg,pdf|max:2048',
+]);
+
+// Handle the file upload
+$file = $request->file('file');
+$fileName = time() . '_' . $file->getClientOriginalName();
+$file->storeAs('uploads', $fileName, 'public');
+
+// Create a new c$crudapi record
+$crudapi = new Crudapi();
+$crudapi->name = $request->input('name');
+$crudapi->file = $fileName; // Adjust the column name according to your database schema
+$crudapi->email = $request->input('email');
+$crudapi->password =$request->input('password'); // Hash the password
+
+// Save the $crudapi record
+$crudapi->save();
+
+// Return a response
+return response()->json(['message' => 'User created successfully']);
+}
+
+
+
+-----------------------------------------------------------------------------------------------------
+    *without file insert
+        $this->validate($request, [
+            'name' => 'required',
+            'email' => 'required',
+            'password'=>'required',
+        ]);
+
+        $crudapi = Crudapi::create($request->all());
+        dd($crudapi);
+        return response()->json($crudapi, 201);
+
+	--------------------------------------------------------------------------------
+	*SHOW DATA
+
+	public function show($id)
+    {
+        $crudapi = Crudapi::find($id);
+        
+        if (!$crudapi) {
+            return response()->json(['error' => 'Task not found'], 404);
+        }
+
+        return response()->json($crudapi);
+    }

@@ -1,0 +1,7 @@
+*Alter Table concept
+
+-  php artisan make:migration add_colname_to_tablename_table --table=table name
+
+*MIGRATION for NEW TABLE 
+
+php artisan make:migration create_newtable_table

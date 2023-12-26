@@ -1,0 +1,77 @@
+
+-------------------(Cmd For Create Project)-----------------------------
+
+
+*Create New Laravel Project Using Composer
+
+		composer create-project --prefer-dist laravel/laravel your-project-name
+		
+		
+*Create new laravel Project using noraml cmd
+
+		laravel new your-project-name
+
+
+*Create table using migration 
+
+        php artisan make:migration create_tablename_table
+
+
+*create model ----> (model name same as tabel name first letter is capital)
+
+        php artisan make:model modelname 
+
+*Create Controller
+
+        php artisan make:controller controllerName
+		
+					
+* create Resource Controller
+
+		php artisan make:controller controllerName --resource
+		
+
+*Create Controller Model in one cmd
+
+		php artisan make:model -c-m
+
+
+*Run Migration 
+
+        php artisan migrate
+
+
+*Fresh migration 
+
+		php artisan migrate:fresh
+
+*create Request Class
+
+       php artisan make:request RequestName
+
+
+================================(Cmd For Project alredy Created)======================================  
+
+*Alter Table Concept (Add Column)
+
+
+		php artisan make:migration add_colname_to_tablename_table --table=table name
+
+
+*create seeders and add data using seeders
+
+		php artisan make:seeder YourSeederName
+
+
+#To run a specific seeder:
+
+		php artisan db:seed --class=YourSeederName
+
+
+#To run all seeders:
+
+		php artisan db:seed
+
+
+
+

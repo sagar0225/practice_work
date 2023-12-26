@@ -1,0 +1,408 @@
+countries table
+
+id
+name
+states table
+
+id
+country_id (foreign key)
+name
+cities table
+
+id
+state_id (foreign key)
+name
+-------------------------(model)-------------------------------------
+// Country.php
+class Country extends Model
+{
+    public function states()
+    {
+        return $this->hasMany(State::class);
+    }
+}
+
+// State.php
+class State extends Model
+{
+    public function country()
+    {
+        return $this->belongsTo(Country::class);
+    }
+
+    public function cities()
+    {
+        return $this->hasMany(City::class);
+    }
+}
+
+// City.php
+class City extends Model
+{
+    public function state()
+    {
+        return $this->belongsTo(State::class);
+    }
+}
+---------------------------------(service class)-------------------------------------------
+// LocationService.php
+namespace App\Services;
+
+use App\Models\Country;
+use App\Models\State;
+use App\Models\City;
+
+class LocationService
+{
+    public function getCountries()
+    {
+        return Country::all();
+    }
+
+    public function getStatesByCountry($countryId)
+    {
+        return State::where('country_id', $countryId)->get();
+    }
+
+    public function getCitiesByState($stateId)
+    {
+        return City::where('state_id', $stateId)->get();
+    }
+}
+
+-------------------------(Controller)-----------------------------------------------------
+
+// ApiLocationController.php
+namespace App\Http\Controllers;
+
+use App\Services\LocationService;
+
+class ApiLocationController extends Controller
+{
+    protected $locationService;
+
+    public function __construct(LocationService $locationService)
+    {
+        $this->locationService = $locationService;
+    }
+
+    public function getCountries()
+    {
+        return response()->json($this->locationService->getCountries());
+    }
+
+    public function getStatesByCountry($countryId)
+    {
+        return response()->json($this->locationService->getStatesByCountry($countryId));
+    }
+
+    public function getCitiesByState($stateId)
+    {
+        return response()->json($this->locationService->getCitiesByState($stateId));
+    }
+}
+--------------------------(Route)------------------------------------------
+
+// routes/api.php
+use App\Http\Controllers\ApiLocationController;
+
+Route::get('/countries', [ApiLocationController::class, 'getCountries']);
+Route::get('/states/{countryId}', [ApiLocationController::class, 'getStatesByCountry']);
+Route::get('/cities/{stateId}', [ApiLocationController::class, 'getCitiesByState']);
+
+
+
+-------------------------------------------
+// app/Services/AuthService.php
+
+namespace App\Services;
+
+use App\Models\User;
+
+class AuthService
+{
+    public function loginWithEmail($email, $password)
+    {
+        // Your logic for email login
+        return auth()->attempt(['email' => $email, 'password' => $password]);
+    }
+
+    public function loginWithMobile($mobile, $password)
+    {
+        // Your logic for mobile login
+        return auth()->attempt(['mobile' => $mobile, 'password' => $password]);
+    }
+}
+
+-----------------------------------------------------
+Route::post('/login/email', 'AuthController@loginWithEmail');
+Route::post('/login/mobile', 'AuthController@loginWithMobile');
+---------------------------------------------------------------------------
+// app/Http/Controllers/AuthController.php
+
+namespace App\Http\Controllers;
+
+use App\Services\AuthService;
+use Illuminate\Http\Request;
+
+class AuthController extends Controller
+{
+    protected $authService;
+
+    public function __construct(AuthService $authService)
+    {
+        $this->authService = $authService;
+    }
+
+    public function loginWithEmail(Request $request)
+    {
+        $credentials = $request->only('email', 'password');
+
+        if ($this->authService->loginWithEmail($credentials['email'], $credentials['password'])) {
+            // Authentication successful
+            return response()->json(['message' => 'Login successful']);
+        } else {
+            // Authentication failed
+            return response()->json(['message' => 'Invalid credentials'], 401);
+        }
+    }
+
+    public function loginWithMobile(Request $request)
+    {
+        $credentials = $request->only('mobile', 'password');
+
+        if ($this->authService->loginWithMobile($credentials['mobile'], $credentials['password'])) {
+            // Authentication successful
+            return response()->json(['message' => 'Login successful']);
+        } else {
+            // Authentication failed
+            return response()->json(['message' => 'Invalid credentials'], 401);
+        }
+    }
+}
+-----------------------------------------------------------------------------------------------
+// app/Models/User.php
+
+namespace App\Models;
+
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+
+class User extends Authenticatable
+{
+    use Notifiable;
+
+    protected $fillable = [
+        'name', 'email', 'password', 'mobile',
+    ];
+
+    // ...
+}
+===================================================================================================
+// app/Services/UserService.php
+
+namespace App\Services;
+
+use App\Models\User;
+
+class UserService
+{
+    public function updateUserInfo(User $user, array $data)
+    {
+        // Validate and update user information
+        if (isset($data['name'])) {
+            $user->name = $data['name'];
+        }
+
+        if (isset($data['email'])) {
+            $user->email = $data['email'];
+        }
+
+        if (isset($data['mobile'])) {
+            $user->mobile = $data['mobile'];
+        }
+
+        if (isset($data['password'])) {
+            $user->password = bcrypt($data['password']);
+        }
+
+        // Save the changes
+        $user->save();
+
+        return $user;
+    }
+}
+-------------------------------------------------------------------------
+// app/Http/Controllers/UserController.php
+
+use App\Services\UserService;
+use Illuminate\Http\Request;
+
+class UserController extends Controller
+{
+    protected $userService;
+
+    public function __construct(UserService $userService)
+    {
+        $this->userService = $userService;
+    }
+
+    public function update(Request $request, $id)
+    {
+        $user = User::findOrFail($id);
+
+        $data = $request->validate([
+            'name' => 'string|max:255',
+            'email' => 'email|max:255|unique:users,email,' . $user->id,
+            'mobile' => 'string|max:20',
+            'password' => 'nullable|string|min:6|confirmed',
+        ]);
+
+        $updatedUser = $this->userService->updateUserInfo($user, $data);
+
+        return response()->json($updatedUser);
+    }
+
+
+=======================================================php===============================================
+<?php  
+include 'db.php';
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Display</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+</head>
+<body>
+    <br>
+    <br>
+    <div>
+        <button><a href="insert.php">Add Users</a></button>
+    </div>
+   <br>
+<table class="table">
+  <thead>
+    <tr>
+      <th scope="col">Id</th>
+      <th scope="col">Name</th>
+      <th scope="col">Email</th>
+      <th scope="col">Password</th>
+      <th scope="col">Operations</th>
+      
+    </tr>
+  </thead>
+  <tbody>
+  <?php
+    
+     $sql="Select * from `crud`";
+     $result= mysqli_query($con,$sql);
+    if($result){
+       while($row =mysqli_fetch_assoc($result)){
+            $id =$row['id'];
+            $name =$row['name'];
+            $email =$row['email'];
+            $password =$row['password'];
+           echo '<tr>
+           <td>'.$id.'</td>
+           <td>'.$name.'</td>
+           <td>'.$email.'</td>
+           <td>'.$password.'</td>
+           <td> <button><a href="update.php? updateid='.$id.'">Update</a></button>
+           <button><a href="delete.php? deleteid='.$id.'">Remove</a></button></td>
+           </tr>';
+
+        }
+     }
+    
+   ?>
+    
+  </tbody>
+</table>
+</body>
+</html>
+<?php
+
+$servername = "localhost";
+$username = "root";
+$password = "";
+$dbname = "php";
+
+$con =mysqli_connect($servername,$username,$password,$dbname);
+
+if(!$con){
+    echo "data base connected is unsuccessfully";
+}
+
+
+?>
+==================================================================
+namespace App\Http\Middleware;
+
+use Closure;
+use Illuminate\Support\Facades\Auth;
+
+class ApiAuthMiddleware
+{
+    public function handle($request, Closure $next)
+    {
+        if (Auth::check()) {
+            return $next($request);
+        }
+
+        return response()->json(['error' => 'Unauthorized'], 401);
+    }
+}
+----------------------------------------------------
+// app/Http/Kernel.php
+
+protected $routeMiddleware = [
+    // ... other middleware
+    'apiauth' => \App\Http\Middleware\ApiAuthMiddleware::class,
+];
+-----------------------------------------------------------------------
+
+Route::post('/login', 'AuthController@login');
+
+Route::middleware('apiauth')->group(function () {
+    // Protected routes go here
+})
+
+
+-------------------------------------------------------------
+php artisan make:middleware ApiAuthMiddleware
+
+-------------------------------------------------------------------
+// app/Http/Controllers/AuthController.php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+
+class AuthController extends Controller
+{
+    public function login(Request $request)
+    {
+        $credentials = $request->only('email', 'password');
+
+        if (Auth::attempt($credentials)) {
+            $user = Auth::user();
+            $token = $user->createToken('API Token')->accessToken;
+
+            return response()->json(['token' => $token], 200);
+        }
+
+        return response()->json(['error' => 'Unauthorized'], 401);
+    }
+}
+----------------------------------------------
+// routes/api.php
+
+Route::post('/login', 'AuthController@login');
+
+Route::middleware('apiauth')->group(function () {
+    // Protected routes go here
+});

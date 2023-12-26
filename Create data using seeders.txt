@@ -1,0 +1,42 @@
+----------------(Data Insert through Seeders)---------------
+
+*Create Seeder file
+
+  php artisan make:seeder SeederName
+  
+  
+   public function run(): void
+    {
+        // Insert data into the table
+        DB::table('tableName')->insert([
+            'id' => 1,
+            'name' => 'create data',
+            'created_at' => Carbon::now(),
+        ]);
+        DB::table('tableName')->insert([
+            'id' => 2,
+            'name' => 'delete data',
+            'created_at' => Carbon::now(),
+        ]);
+        DB::table('tableName')->insert([
+            'id' => 3,
+            'name' => 'read data',
+            'created_at' => Carbon::now(),
+        ]);
+        DB::table('tableName')->insert([
+            'id' => 4,
+            'name' => 'update data',
+            'created_at' => Carbon::now(),
+        ]);
+        DB::table('tableName')->insert([
+            'id' => 5,
+            'name' => 'testing data',
+            'created_at' => Carbon::now(),
+        ]);
+    }
+	
+*Run seeder
+
+		php artisan db:seed --class=SeederName 
+
+---------------------------------------------------------------------------------------------------------------------------------		

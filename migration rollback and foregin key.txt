@@ -1,0 +1,117 @@
+ First Create Table = Foregin key (like=Products)
+ 
+1) php artisan make:migration create_tablename_table
+ (use this cmd and create both table emps and products)
+ 
+1) In products table
+
+
+public function up(): void
+    {
+        Schema::create('products', function (Blueprint $table) {
+            $table->bigIncrements('id');
+            $table->string('name');
+            $table->timestamps();
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        
+    }
+	
+	
+2)	In emps table
+	
+	 public function up(): void
+    {
+        Schema::create('emps', function (Blueprint $table) {
+            $table->bigIncrements('id');
+            $table->string('name');
+            $table->unsignedBigInteger('product_id');
+            $table->foreign('product_id')->references('id')->on('products')->onDelete('cascade');
+            $table->timestamps();
+            $table->softDeletes();
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::table('emps', function (Blueprint $table) {
+            $table->dropForeign(['product_id']);
+            $table->dropColumn('product_id');
+        });
+    }
+	
+-------------------------------------------------------------------------------	
+
+For Reference
+
+
+ public function up(): void
+    {
+
+      //  Users			
+// id	bigint 20	NOT NULL	primary
+// first_name		NOT NULL	
+// last_name		NOT NULL	
+// email			
+// mobile_number	varchar 20		
+// password			
+// fk_role_id			
+// fk_company_id			
+// fk_manager_id			
+// fk_reporting_id			
+// is_active	enum 	yes no	default (yes)
+// apprisal_date	date	NULL	
+// marital_status	enum 	Single,Married,Other	default ( single )
+// expiry_date	datetime	null	
+// is_demo_user	enum 	yes no	default (no)
+
+        Schema::create('users', function (Blueprint $table) {
+            $table->bigIncrements('id');
+            $table->string('first_name',100)->nullable(false);
+            $table->string('last_name',100)->nullable(false);
+            $table->string('email',255)->nullable(false)->unique();
+            $table->string('mobile_number',20)->nullable(false);
+            $table->string('password');
+
+            $table->unsignedBigInteger('fk_role_id');
+            $table->foreign('fk_role_id')->references('id')->on('roles')->onDelete('cascade');
+
+            $table->unsignedBigInteger('fk_company_id')->nullable();
+            $table->foreign('fk_company_id')->references('id')->on('companies')->onDelete('cascade');
+
+            $table->unsignedBigInteger('fk_manager_id')->nullable();
+            $table->foreign('fk_manager_id')->references('id')->on('users')->onDelete('cascade');
+
+            $table->unsignedBigInteger('fk_reporting_id')->nullable();
+            $table->foreign('fk_reporting_id')->references('id')->on('users')->onDelete('cascade');
+            
+            $table->enum('is_active', ['yes', 'no'])->comment('yes = Active, no = Inactive')->default('yes');
+            $table->date('apprisal_date')->nullable();
+            $table->enum('marital_status', ['single', 'married'])->default('single');
+            $table->datetime('expiry_date')->nullable();
+            $table->enum('is_demo_user', ['yes', 'no'])->comment('yes = Demo User, no = NA')->default('no');
+            $table->timestamp('email_verified_at')->nullable();
+            $table->rememberToken();            
+            $table->timestamps();
+            $table->softDeletes();
+        });
+    }
+     /* Reverse the migrations.
+     */
+    public function down(): void
+    {
+
+        Schema::table('users', function (Blueprint $table) {
+            //$table->dropForeign(['fk_role_id']);
+            $table->dropForeign(['users']);
+        });
+       
